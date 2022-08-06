@@ -1,0 +1,4 @@
+ctranslate2
+sentencepiece
+# huggingface
+huggingface-hub
