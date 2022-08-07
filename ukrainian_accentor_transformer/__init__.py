@@ -97,9 +97,10 @@ class Accentor:
         clean_sentences = self._clean_accents(sentences)
 
         tokenized_sentences = self.sp.encode(clean_sentences, out_type=str)
-        splitted_sentences, join_list = self._split_long(tokenized_sentences)
+        splitted_sentences = self._split_punctuation(tokenized_sentences)
 
-        results = self.model.translate_batch(splitted_sentences, **self._run_config)
+        translation_batch, join_list = self._to_translation_batch(splitted_sentences)
+        results = self.model.translate_batch(translation_batch, **self._run_config)
         accented_tokens = [result.hypotheses[0] for result in results]
 
         join_sentences = self._join_long(accented_tokens, join_list)
@@ -111,14 +112,12 @@ class Accentor:
         clean_sentences = [sentence.replace("\u0301","") for sentence in sentences]
         return clean_sentences
 
-    def _split_long(self, tokenized_sentences: List[List[str]]) -> Tuple[List[List[str]], List[int]]:
+    def _split_punctuation(self, tokenized_sentences: List[List[str]]) -> List[List[List[str]]]:
         splitted_sentences = []
-        join_list = []
         for tokenized in tokenized_sentences:
             splitted = self._split_sentence(tokenized)
-            splitted_sentences += splitted
-            join_list.append(len(splitted))
-        return splitted_sentences, join_list
+            splitted_sentences.append(splitted)
+        return splitted_sentences
 
     def _split_sentence(self, tokenized: List[str]) -> List[List[str]]:
         splitted = []
@@ -131,6 +130,11 @@ class Accentor:
             if (start_idx < len(tokenized)):
                 splitted.append(tokenized[start_idx:])
         return splitted
+
+    def _to_translation_batch(self, splitted_sentences: List[List[List[str]]]) -> Tuple[List[List[str]], List[int]]:
+        join_list = [len(sentence) for sentence in splitted_sentences]
+        translation_batch = sum(splitted_sentences, [])
+        return translation_batch, join_list
 
     def _join_long(self, splitted_sentences: List[List[str]], join_list: List[int]) -> List[List[str]]:
         join_sentences = []
