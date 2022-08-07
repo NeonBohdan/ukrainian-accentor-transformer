@@ -123,13 +123,13 @@ class Accentor:
     def _split_sentence(self, tokenized: List[str]) -> List[List[str]]:
         splitted = []
         start_idx = 0
-        for i, token in enumerate(tokenized):
-            idx = i + 1
+        for idx, token in enumerate(tokenized, start = 1):
             if token in self.split_tokens:
                 splitted.append(tokenized[start_idx:idx])
                 start_idx = idx
         else:
-            splitted.append(tokenized[start_idx:])
+            if (start_idx < len(tokenized)):
+                splitted.append(tokenized[start_idx:])
         return splitted
 
     def _join_long(self, splitted_sentences: List[List[str]], join_list: List[int]) -> List[List[str]]:
