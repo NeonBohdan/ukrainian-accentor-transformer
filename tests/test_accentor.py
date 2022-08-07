@@ -54,6 +54,10 @@ class TestAccentor(unittest.TestCase):
         self.assertEqual(text1, accented1.replace("\u0301",""))
         self.assertEqual(text2, accented2.replace("\u0301",""))
 
+    def test_long_sentence(self):
+        text = "Адже як би не оцінював галичан один страшно інтелігентний виходець з радянсько єврейських середовищ київського Подолу самі галичани вважають свою культуру і традицію політичну і релігійну побутову й господарську на голову вищою від усього що за Збручем"
+        accented = self.accentor(text)
+        self.assertEqual(text, accented.replace("\u0301",""))
 
 if __name__ == '__main__':
     unittest.main()
