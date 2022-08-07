@@ -59,5 +59,10 @@ class TestAccentor(unittest.TestCase):
         accented = self.accentor(text)
         self.assertEqual(text, accented.replace("\u0301",""))
 
+    def test_long_sentence(self):
+        text = "Веселка також райдуга атмосферне оптичне явище що являє собою одну дві чи декілька спектральних дуг або кіл якщо дивитися з повітря що спостерігаються на тлі хмари якщо вона розташована проти Сонця Червоний колір спектру ми бачимо з зовнішнього боку первинної веселки а фіолетовий із внутрішнього"
+        accented = self.accentor(text)
+        self.assertEqual(text, accented.replace("\u0301",""))
+
 if __name__ == '__main__':
     unittest.main()

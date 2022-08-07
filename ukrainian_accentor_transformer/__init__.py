@@ -37,7 +37,7 @@ import ctranslate2
 class Accentor:
     _hf_repo = "NeonBohdan/ukrainian-accentor-transformer@v0.1"
     
-    max_len = 50
+    max_len = 30
     split_tokens = set([".",",","!","?"])
 
     _init_config = {
@@ -134,10 +134,15 @@ class Accentor:
         return splitted
 
     def _split_long(self, splitted_sentences: List[List[List[str]]]) -> List[List[List[str]]]:
-        short_sentences = []
-        for tokenized in splitted_sentences:
-            short = self._split_long_sentence(tokenized)
-            short_sentences.append(short)
+        while True:
+            short_sentences = []
+            for tokenized in splitted_sentences:
+                short = self._split_long_sentence(tokenized)
+                short_sentences.append(short)
+            if splitted_sentences == short_sentences:
+                break
+            else:
+                splitted_sentences = short_sentences
         return short_sentences
 
     def _split_long_sentence(self, splitted: List[List[str]]) -> List[List[str]]:
