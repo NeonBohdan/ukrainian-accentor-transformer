@@ -92,7 +92,9 @@ class Accentor:
             accented_sentences
         """
      
-        tokenized = self.sp.encode(sentences, out_type=str)
+        clean_sentences = self._clean_accents(sentences)
+
+        tokenized = self.sp.encode(clean_sentences, out_type=str)
 
         results = self.model.translate_batch(tokenized, **self._run_config)
 
@@ -101,6 +103,10 @@ class Accentor:
         accented_sentences = self.sp.decode(accented_tokens)
 
         return accented_sentences
+
+    def _clean_accents(self, sentences: List[str]) -> List[str]:
+        clean_sentences = [sentence.replace("\u0301","") for sentence in sentences]
+        return clean_sentences
 
     def _init_model(self, device: str) -> None:
         """
