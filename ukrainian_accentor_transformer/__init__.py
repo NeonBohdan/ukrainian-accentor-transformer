@@ -27,7 +27,7 @@
 # SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from huggingface_hub import snapshot_download
 import sentencepiece as spm
@@ -36,6 +36,8 @@ import ctranslate2
 
 class Accentor:
     _hf_repo = "NeonBohdan/ukrainian-accentor-transformer@v0.1"
+    
+    split_tokens = set([".",",","!","?"])
 
     _init_config = {
         "inter_threads": 2, 
@@ -94,19 +96,50 @@ class Accentor:
      
         clean_sentences = self._clean_accents(sentences)
 
-        tokenized = self.sp.encode(clean_sentences, out_type=str)
+        tokenized_sentences = self.sp.encode(clean_sentences, out_type=str)
+        splitted_sentences, join_list = self._split_long(tokenized_sentences)
 
-        results = self.model.translate_batch(tokenized, **self._run_config)
-
+        results = self.model.translate_batch(splitted_sentences, **self._run_config)
         accented_tokens = [result.hypotheses[0] for result in results]
 
-        accented_sentences = self.sp.decode(accented_tokens)
+        join_sentences = self._join_long(accented_tokens, join_list)
+        accented_sentences = self.sp.decode(join_sentences)
 
         return accented_sentences
 
     def _clean_accents(self, sentences: List[str]) -> List[str]:
         clean_sentences = [sentence.replace("\u0301","") for sentence in sentences]
         return clean_sentences
+
+    def _split_long(self, tokenized_sentences: List[List[str]]) -> Tuple[List[List[str]], List[int]]:
+        splitted_sentences = []
+        join_list = []
+        for tokenized in tokenized_sentences:
+            splitted = self._split_sentence(tokenized)
+            splitted_sentences += splitted
+            join_list.append(len(splitted))
+        return splitted_sentences, join_list
+
+    def _split_sentence(self, tokenized: List[str]) -> List[List[str]]:
+        splitted = []
+        start_idx = 0
+        for i, token in enumerate(tokenized):
+            idx = i + 1
+            if token in self.split_tokens:
+                splitted.append(tokenized[start_idx:idx])
+                start_idx = idx
+        else:
+            splitted.append(tokenized[start_idx:])
+        return splitted
+
+    def _join_long(self, splitted_sentences: List[List[str]], join_list: List[int]) -> List[List[str]]:
+        join_sentences = []
+        sentence_idx = 0
+        for join_len in join_list:
+            sentence = sum(splitted_sentences[sentence_idx:sentence_idx + join_len], [])
+            join_sentences.append(sentence)
+            sentence_idx += join_len
+        return join_sentences
 
     def _init_model(self, device: str) -> None:
         """
