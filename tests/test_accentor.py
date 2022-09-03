@@ -64,5 +64,13 @@ class TestAccentor(unittest.TestCase):
         accented = self.accentor(text)
         self.assertEqual(text, accented.replace("\u0301",""))
 
+    def test_corpus(self):
+        with open("tests/sentences.txt") as sentences_file:
+            sentences = sentences_file.readlines()
+        accented = self.accentor(sentences)
+        clean_sentences = self.accentor._clean_accents(accented)
+        for sentence, clean_sentence in zip(sentences, clean_sentences):
+            self.assertEqual(sentence, clean_sentence)
+
 if __name__ == '__main__':
     unittest.main()
