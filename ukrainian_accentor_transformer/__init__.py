@@ -33,6 +33,8 @@ from huggingface_hub import snapshot_download
 import sentencepiece as spm
 import ctranslate2
 
+from .sequence_utils import diff_fix
+
 
 class Accentor:
     _hf_repo = "NeonBohdan/ukrainian-accentor-transformer@v0.1"
@@ -108,7 +110,9 @@ class Accentor:
         join_sentences = self._join_long(accented_tokens, join_list)
         accented_sentences = self.sp.decode(join_sentences)
 
-        return accented_sentences
+        fixed_sentences = self._diff_fix(clean_sentences, accented_sentences)
+
+        return fixed_sentences
 
     def _clean_accents(self, sentences: List[str]) -> List[str]:
         clean_sentences = [sentence.replace("\u0301","") for sentence in sentences]
@@ -183,6 +187,12 @@ class Accentor:
             join_sentences.append(sentence)
             sentence_idx += join_len
         return join_sentences
+
+    def _diff_fix(self, sentences: List[str], accented_sentences: List[str]):
+        fixed_sentences = [diff_fix(input = sentence, output = accented_sentence) 
+                for sentence, accented_sentence in zip(sentences, accented_sentences)]
+        return fixed_sentences
+        
 
     def _init_model(self, device: str) -> None:
         """
