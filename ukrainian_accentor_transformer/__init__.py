@@ -44,7 +44,7 @@ class Accentor:
 
     _init_config = {
         "inter_threads": 2, 
-        "intra_threads": 1
+        "intra_threads": 4
     }
 
     _run_config = {
